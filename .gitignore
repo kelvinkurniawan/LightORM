@@ -1,0 +1,43 @@
+# Dependency directories
+/vendor/
+
+# Composer files
+composer.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+
+# Test coverage
+/coverage/
+/phpunit.xml
+/.phpunit.result.cache
+
+# Cache files
+/cache/
+/tmp/
+
+# Example config files (keep examples but not actual config)
+config/config.php
+
+# Example public files
+public/
