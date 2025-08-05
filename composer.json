@@ -1,0 +1,13 @@
+{
+  "name": "kelvinkurniawan/simple-orm",
+  "description": "Simple ORM for native PHP",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=7.4"
+    }
+}
