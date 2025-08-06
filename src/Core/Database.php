@@ -2,50 +2,95 @@
 
 namespace KelvinKurniawan\LightORM\Core;
 
+use KelvinKurniawan\LightORM\Database\DatabaseManager;
+use KelvinKurniawan\LightORM\Contracts\ConnectionInterface;
+use KelvinKurniawan\LightORM\Contracts\GrammarInterface;
 use PDO;
 
+/**
+ * Legacy Database class for backward compatibility
+ * 
+ * @deprecated Use DatabaseManager instead
+ */
 class Database {
-    private static $pdo;
-    private static $config;
+    private static ?DatabaseManager $manager = NULL;
 
     /**
-     * Set database configuration
+     * Set database configuration (legacy method)
      * 
      * @param array $config Database configuration array
      * @return void
      */
     public static function setConfig(array $config): void {
-        self::$config = $config;
-        self::$pdo    = NULL; // Reset connection
+        self::getManager()->addConfiguration('default', $config);
     }
 
     /**
-     * Get database connection
+     * Get database connection (legacy method)
      * 
      * @return PDO
      * @throws \Exception
      */
     public static function getConnection(): PDO {
-        if(!self::$pdo) {
-            if(!self::$config) {
-                throw new \Exception('Database configuration not set. Use Database::setConfig() first.');
-            }
-
-            $config    = self::$config;
-            $dsn       = "mysql:host={$config['host']};dbname={$config['dbname']};charset=utf8mb4";
-            self::$pdo = new PDO($dsn, $config['username'], $config['password']);
-            self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        }
-
-        return self::$pdo;
+        return self::getManager()->connection()->getPdo();
     }
 
     /**
-     * Get current configuration
+     * Get current configuration (legacy method)
      * 
      * @return array|null
      */
     public static function getConfig(): ?array {
-        return self::$config;
+        try {
+            return self::getManager()->connection()->getConfig();
+        } catch (\Exception $e) {
+            return NULL;
+        }
+    }
+
+    /**
+     * Get the database manager instance
+     */
+    public static function getManager(): DatabaseManager {
+        if(self::$manager === NULL) {
+            self::$manager = new DatabaseManager();
+        }
+
+        return self::$manager;
+    }
+
+    /**
+     * Set a custom database manager
+     */
+    public static function setManager(DatabaseManager $manager): void {
+        self::$manager = $manager;
+    }
+
+    /**
+     * Get a connection interface
+     */
+    public static function connection(string $name = NULL): ConnectionInterface {
+        return self::getManager()->connection($name);
+    }
+
+    /**
+     * Get a grammar instance
+     */
+    public static function getGrammar(string $driver = NULL): GrammarInterface {
+        return self::getManager()->getGrammar($driver);
+    }
+
+    /**
+     * Execute a transaction
+     */
+    public static function transaction(callable $callback, string $connection = NULL): mixed {
+        return self::getManager()->transaction($callback, $connection);
+    }
+
+    /**
+     * Load configuration from environment
+     */
+    public static function loadFromEnv(string $envFile = '.env'): void {
+        self::getManager()->loadFromEnv($envFile);
     }
 }

@@ -8,6 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Priority 1 Implementation**:
+  - Modular architecture with separated concerns
+  - New `QueryBuilder` class with fluent interface
+  - `DatabaseManager` with multi-database support (MySQL, PostgreSQL, SQLite)
+  - Enhanced `Validator` class with custom rules support
+  - `EventDispatcher` for model lifecycle events
+  - Database-specific Grammar classes (MySQL, PostgreSQL, SQLite)
+  - Connection classes for different database drivers
+  - Helper functions for easier access to core components
+  - Comprehensive interfaces/contracts for better extensibility
+  - Environment-based configuration support (.env)
+  - Enhanced transaction support with nested transactions
+
+### Changed
+- **Breaking Changes**:
+  - Updated PHP requirement to ^8.0
+  - Modularized Core components (split large Model.php)
+  - Enhanced Database class now uses DatabaseManager internally
+  - Improved namespacing and PSR-4 autoloading
+
+### Enhanced
+- Multi-database connection support
+- Better error handling and validation
+- Improved query building capabilities
+- Enhanced testing infrastructure
+- Better code organization and maintainability
+
+### Added (Previous)
 - Initial release of LightORM
 - Active Record pattern implementation
 - Advanced Query Builder with fluent interface

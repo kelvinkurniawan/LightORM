@@ -278,5 +278,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Author
 
 **Kelvin Kurniawan**
-- Email: kelvin@example.com
+- Email: kelvin@aksarastudio.tech
 - GitHub: [@kelvinkurniawan](https://github.com/kelvinkurniawan)
