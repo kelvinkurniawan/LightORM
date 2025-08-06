@@ -41,3 +41,19 @@ config/config.php
 
 # Example public files
 public/
+
+# Development documentation (keep locally but not in repo)
+PRIORITY1_REPORT.md
+docs/PRIORITY_2_COMPLETION.md
+
+# Development test files (keep locally but not in repo)
+tests/RealWorldTest.php
+
+# Database files (for local development)
+*.sqlite
+*.db
+
+# Local development files
+/local/
+/dev/
+/development/
