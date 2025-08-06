@@ -14,8 +14,8 @@
   - [x] Add PostgreSQL support
   - [x] Add SQLite support  
   - [x] Create database-specific query grammar classes
-  - [ ] Implement database migrations system
-  - [ ] Add database seeding functionality
+  - [x] Implement database migrations system
+  - [x] Add database seeding functionality
 
 - [x] **Enhanced Configuration**
   - [x] Support multiple database connections

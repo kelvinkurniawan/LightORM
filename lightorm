@@ -1,0 +1,203 @@
+#!/usr/bin/env php
+<?php
+
+require_once 'vendor/autoload.php';
+
+use KelvinKurniawan\LightORM\Database\DatabaseManager;
+use KelvinKurniawan\LightORM\Migration\MigrationManager;
+use KelvinKurniawan\LightORM\Migration\Schema;
+use KelvinKurniawan\LightORM\Seeding\SeederManager;
+
+/**
+ * LightORM CLI Tool
+ */
+class LightORMCLI {
+    private DatabaseManager  $dbManager;
+    private MigrationManager $migrationManager;
+    private SeederManager    $seederManager;
+
+    public function __construct() {
+        $this->dbManager = new DatabaseManager();
+
+        // Load configuration (adjust path as needed)
+        if(file_exists('config/config.php')) {
+            $config = require 'config/config.php';
+            if(isset($config['database'])) {
+                $this->dbManager->addConfiguration('default', $config['database']);
+            } else {
+                $this->useDefaultConfig();
+            }
+        } else {
+            $this->useDefaultConfig();
+        }
+
+        $connection = $this->dbManager->connection();
+        Schema::setConnection($connection);
+
+        $this->migrationManager = new MigrationManager($connection);
+        $this->seederManager    = new SeederManager($connection);
+    }
+
+    private function useDefaultConfig(): void {
+        // Default SQLite configuration for development
+        $this->dbManager->addConfiguration('default', [
+            'driver'   => 'sqlite',
+            'database' => 'database.sqlite'
+        ]);
+    }
+
+    public function run(array $argv): void {
+        if(count($argv) < 2) {
+            $this->showHelp();
+            return;
+        }
+
+        $command = $argv[1];
+
+        try {
+            switch($command) {
+                case 'migrate':
+                    $this->migrate();
+                    break;
+
+                case 'migrate:rollback':
+                    $steps = isset($argv[2]) ? (int) $argv[2] : 1;
+                    $this->rollback($steps);
+                    break;
+
+                case 'migrate:status':
+                    $this->migrationStatus();
+                    break;
+
+                case 'make:migration':
+                    if(!isset($argv[2])) {
+                        echo "❌ Migration name is required\n";
+                        return;
+                    }
+                    $this->createMigration($argv[2]);
+                    break;
+
+                case 'seed':
+                    $seeder = $argv[2] ?? NULL;
+                    $this->seed($seeder);
+                    break;
+
+                case 'make:seeder':
+                    if(!isset($argv[2])) {
+                        echo "❌ Seeder name is required\n";
+                        return;
+                    }
+                    $this->createSeeder($argv[2]);
+                    break;
+
+                case 'help':
+                case '--help':
+                case '-h':
+                    $this->showHelp();
+                    break;
+
+                default:
+                    echo "❌ Unknown command: {$command}\n";
+                    $this->showHelp();
+            }
+        } catch (Exception $e) {
+            echo "❌ Error: " . $e->getMessage() . "\n";
+            exit(1);
+        }
+    }
+
+    private function migrate(): void {
+        echo "🚀 Running migrations...\n";
+        $result = $this->migrationManager->migrate();
+
+        echo "✅ " . $result['message'] . "\n";
+
+        if(!empty($result['migrated'])) {
+            echo "📄 Migrated:\n";
+            foreach($result['migrated'] as $migration) {
+                echo "   - {$migration}\n";
+            }
+        }
+    }
+
+    private function rollback(int $steps): void {
+        echo "⏪ Rolling back {$steps} migration batch(es)...\n";
+        $result = $this->migrationManager->rollback($steps);
+
+        echo "✅ " . $result['message'] . "\n";
+
+        if(!empty($result['rolled_back'])) {
+            echo "📄 Rolled back:\n";
+            foreach($result['rolled_back'] as $migration) {
+                echo "   - {$migration}\n";
+            }
+        }
+    }
+
+    private function migrationStatus(): void {
+        echo "📊 Migration Status:\n";
+        $status = $this->migrationManager->status();
+
+        if(empty($status)) {
+            echo "   No migrations found\n";
+            return;
+        }
+
+        foreach($status as $migration) {
+            $icon = $migration['status'] === 'executed' ? '✅' : '⏳';
+            echo "   {$icon} {$migration['name']} ({$migration['status']})\n";
+        }
+    }
+
+    private function createMigration(string $name): void {
+        echo "📝 Creating migration: {$name}\n";
+        $filepath = $this->migrationManager->createMigration($name);
+        echo "✅ Migration created: {$filepath}\n";
+    }
+
+    private function seed(?string $seeder = NULL): void {
+        if($seeder) {
+            echo "🌱 Running seeder: {$seeder}\n";
+            $result = $this->seederManager->runSeeder($seeder);
+        } else {
+            echo "🌱 Running all seeders...\n";
+            $result = $this->seederManager->run();
+        }
+
+        echo "✅ " . $result['message'] . "\n";
+
+        if(!empty($result['executed'])) {
+            echo "📄 Executed:\n";
+            foreach($result['executed'] as $seederName) {
+                echo "   - {$seederName}\n";
+            }
+        }
+    }
+
+    private function createSeeder(string $name): void {
+        echo "📝 Creating seeder: {$name}\n";
+        $filepath = $this->seederManager->createSeeder($name);
+        echo "✅ Seeder created: {$filepath}\n";
+    }
+
+    private function showHelp(): void {
+        echo "🚀 LightORM CLI Tool\n\n";
+        echo "Available commands:\n";
+        echo "  migrate              Run pending migrations\n";
+        echo "  migrate:rollback [steps]  Rollback migrations (default: 1 batch)\n";
+        echo "  migrate:status       Show migration status\n";
+        echo "  make:migration <name>     Create new migration\n";
+        echo "  seed [seeder]        Run seeders (all or specific)\n";
+        echo "  make:seeder <name>   Create new seeder\n";
+        echo "  help                 Show this help message\n";
+        echo "\nExamples:\n";
+        echo "  php lightorm migrate\n";
+        echo "  php lightorm make:migration create_users_table\n";
+        echo "  php lightorm seed\n";
+        echo "  php lightorm make:seeder UserSeeder\n";
+    }
+}
+
+// Run CLI
+$cli = new LightORMCLI();
+$cli->run($argv);
